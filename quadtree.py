@@ -1,10 +1,12 @@
 def add_cluster_id(feature, cluster_id):
+    '''přidá každému bodu cluster_id, podle toho, do kterého polygonu náleží'''
     if 'cluster_id' not in feature['properties']:
         feature['properties']['cluster_id'] = ''
     feature['properties']['cluster_id'] += cluster_id
 
 
 def get_breakpoints(features):
+    '''extrahuje xy souřadnice do seznamů a počítá hraniční hodnoty kvadrantů'''
     x_coordinates = []
     y_coordinates = []
     for coordinate in features:
@@ -22,6 +24,8 @@ def get_breakpoints(features):
 
 
 def split_features(features, x_mid, y_mid):
+    '''rozděluje body podle jejich polohy do kvadrantů'''
+    # definovány nové kvadranty
     features1 = []
     features2 = []
     features3 = []
@@ -52,14 +56,15 @@ def split_features(features, x_mid, y_mid):
     return features1, features2, features3, features4
 
 
-def quad_tree(features, output_list, x_mid, y_mid, x_qlen, y_qlen, quad=0):
-
+def quad_tree(features, output_list, x_mid, y_mid, x_qlen, y_qlen, quad):
+    '''v případě potřeby rozděluje body v jednom kvadrantu do dalších kvadrantů'''
     #  input: listy features 1-4
+    # podmínka rekurze:
     if len(features) < 50:
         for point in features:
             output_list.append(point)
         return output_list
-
+    # vypocet novych linii rezu
     if quad == 1:
         x_mid = x_mid - x_qlen
         y_mid = y_mid + y_qlen
@@ -75,6 +80,7 @@ def quad_tree(features, output_list, x_mid, y_mid, x_qlen, y_qlen, quad=0):
 
     features1, features2, features3, features4 = split_features(features, x_mid, y_mid)
 
+    # rekurze s upravovatelnými parametry x_qlen/2 a y_qlen/2
     quad_tree(features1, output_list, x_mid, y_mid, x_qlen/2, y_qlen/2, quad=1)
     quad_tree(features2, output_list, x_mid, y_mid, x_qlen/2, y_qlen/2, quad=2)
     quad_tree(features3, output_list, x_mid, y_mid, x_qlen/2, y_qlen/2, quad=3)
